@@ -57,7 +57,7 @@ function print_info()
     echo ""
     print_and_execute "${ssh_host}" "cat /etc/os-release"
     echo ""
-    print_and_execute "${ssh_host}" "sudo systemctl list-unit-files -t service -l --no-pager"
+    print_and_execute "${ssh_host}" "sudo systemctl list-units -t service -l --no-pager"
     echo ""
     print_and_execute "${ssh_host}" "sudo lsof -i"
   done
