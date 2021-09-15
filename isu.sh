@@ -21,10 +21,10 @@ function print_error()
 
 function execute_command_ssh()
 {
-  local host=$1; shift 1
+  local ssh_host=$1; shift 1
   local cmd=$*
 
-  ssh "${host}" "${cmd}"
+  ssh "${ssh_host}" "${cmd}" |& sed  "s/^/[${ssh_host}] /"
 }
 
 function print_and_execute()
