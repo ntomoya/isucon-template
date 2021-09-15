@@ -222,6 +222,10 @@ case "${sub_command}" in
     print_info "$@"
     ;;
 
+  init)
+    setup_initial_files
+    ;;
+
   link)
     link_remote_file "$@"
     ;;
