@@ -239,7 +239,6 @@ case "${sub_command}" in
     ;;
 
   *)
-    printf '%s\n' "${SCRIPT_NAME}: no such subcommand '${sub_command}'" 1>&2
     print_error "no such subcommand '${sub_command}'"
     print_help
     exit 1
