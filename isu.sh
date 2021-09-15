@@ -125,7 +125,7 @@ function link_remote_file()
     local_path=${BASE_DIR}/${ssh_host}/${relative_local_path}
   fi
 
-  if [[ $(scp -r "${ssh_host}:${remote_path}" "${local_path}") != 0 ]]; then
+  if ! scp -r "${ssh_host}:${remote_path}" "${local_path}"; then
     print_error "faild to copy a file from the remote host"
     exit $?
   fi
