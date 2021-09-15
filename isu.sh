@@ -88,9 +88,6 @@ function setup_initial_files()
     local deploy_file="${BASE_DIR}/${ssh_host}/deploy.sh"
 
     mkdir -p "${BASE_DIR}/${ssh_host}"
-    touch "${deploy_file}"
-    chmod +x "${deploy_file}"
-
     cat << END > "${deploy_file}"
 #!/bin/bash
 
@@ -100,6 +97,7 @@ set -ex
 # this file will be executed on remote
 
 END
+    chmod +x "${deploy_file}"
   done
 }
 
