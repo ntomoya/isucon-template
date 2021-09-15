@@ -145,7 +145,7 @@ function link_remote_file()
 
   # TODO: remove fetched file if failed
   execute_command_ssh "${ssh_host}" \
-    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${ssh_host}/${relative_local_path} ${remote_path}"
+    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${ssh_host}/${relative_local_path} ${remote_path%/}"
 }
 
 function deploy_all()
