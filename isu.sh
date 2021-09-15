@@ -94,7 +94,15 @@ function setup_initial_files()
 set -ex
 
 # individual deploy script for ${ssh_host}
-# this file will be executed on remote
+# this script will be executed on remote host
+
+# sudo logrotate -f /etc/logrotate.d/nginx
+# sudo logrotate -f /etc/logrotate.d/mysql-server
+
+# sudo systemctl restart nginx
+# sudo systemctl restart redis
+# sudo systemctl restart mysql
+# sudo systemctl restart isucondition.go
 
 END
     chmod +x "${deploy_file}"
