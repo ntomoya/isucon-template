@@ -153,12 +153,16 @@ function deploy_all()
   # FIXME: detect failure
   rsync_directory
 
-  ${BASE_DIR}/deploy.sh
+  (
+    cd "${BASE_DIR}" || exit 1
+
+    "${BASE_DIR}/deploy.sh"
 
   for ssh_host in "${SSH_HOSTS[@]}"; do
-    execute_command_ssh ${ssh_host} "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
+      execute_command_ssh "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
   done
   wait
+  )
 }
 
 function log_collection_and_analysis()
