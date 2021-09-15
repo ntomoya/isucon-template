@@ -202,6 +202,14 @@ function reboot_host()
   wait
 }
 
+function execute_all_ssh()
+{
+  for ssh_host in "${SSH_HOSTS[@]}"; do
+    execute_command_ssh "${ssh_host}" "$@" &
+  done
+  wait
+}
+
 
 # load environment variable from env.sh if exists
 if [[ -f ${BASE_DIR}/env.sh  ]]; then
@@ -226,6 +234,10 @@ sub_command=$1; shift 1
 case "${sub_command}" in
   deploy)
     deploy_all "$@"
+    ;;
+
+  exec)
+    execute_all_ssh "$@"
     ;;
 
   help)
