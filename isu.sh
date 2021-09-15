@@ -94,6 +94,8 @@ function setup_initial_files()
     cat << END > "${deploy_file}"
 #!/bin/bash
 
+set -ex
+
 # individual deploy script for ${ssh_host}
 # this file will be executed on remote
 
