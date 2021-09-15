@@ -1,1 +1,7 @@
-env.sh
+*
+!logs/
+!alp.yml
+!deploy.yml
+!env.sample.sh
+!isu.sh
+!README.md
