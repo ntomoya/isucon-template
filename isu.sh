@@ -103,6 +103,8 @@ END
   done
 }
 
+# FIXME: nested link may cause problems (e.g. link /etc/nginx/ after linking /etc/nginx/nginx.conf)
+# TODO: delete symbolic link and restore files
 function link_remote_file()
 {
   if [[ $# -lt 2 ]]; then
