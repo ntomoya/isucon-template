@@ -79,6 +79,12 @@ function rsync_directory()
 
 function setup_initial_files()
 {
+  # initialize git repository
+  if [[ -f "${BASE_DIR}/.gitignore" ]]; then
+    rm -rf "${BASE_DIR}/.gitignore" "${BASE_DIR}/.git"
+    (cd "${BASE_DIR}" && git init)
+  fi
+
   for ssh_host in "${SSH_HOSTS[@]}"; do
     if [[ -d "${BASE_DIR}/${ssh_host}" ]]; then
       echo "skip creating '${ssh_host}'"
