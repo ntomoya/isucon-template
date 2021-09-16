@@ -65,6 +65,7 @@ function print_info()
     print_and_execute "${ssh_host}" "sudo systemctl list-units -t service -l --no-pager"
     echo ""
     print_and_execute "${ssh_host}" "sudo lsof -i"
+    echo ""
   done
 }
 
