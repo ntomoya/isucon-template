@@ -195,11 +195,13 @@ function log_collection_and_analysis()
     # copy files from remote
     # TODO: remove if the file size is too small
     (
-      scp "${ssh_host}:/var/log/nginx/access.log" "${target_dir}/access.log" && \
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log /tmp/access.log && sudo chmod 777 /tmp/access.log" && \
+      scp "${ssh_host}:/tmp/access.log" "${target_dir}/access.log" && \
       alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/access.log" > "${target_dir}/alp.log"
     ) &
     (
-      scp "${ssh_host}:/var/log/mysql/mysql-slow.log" "${target_dir}/mysql-slow.log" && \
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log /tmp/mysql-slow.log && sudo chmod 777 /tmp/mysql-slow.log" && \
+      scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/mysql-slow.log" && \
       pt-query-digest "${target_dir}/mysql-slow.log" > "${target_dir}/pt-query-digest.log"
     ) &
   done
