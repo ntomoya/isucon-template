@@ -44,7 +44,7 @@ function print_and_execute()
 function print_info()
 {
   local ssh_hosts
-  ssh_hosts=${SSH_HOSTS}
+  ssh_hosts=("${SSH_HOSTS[@]}")
   if [[ $1 != "all" && -n $1 ]]; then
     ssh_hosts=("$1")
   fi
@@ -71,7 +71,7 @@ function print_info()
 function rsync_directory()
 {
   local ssh_hosts
-  ssh_hosts=${SSH_HOSTS}
+  ssh_hosts=("${SSH_HOSTS[@]}")
   if [[ $1 != "all" && -n $1 ]]; then
     ssh_hosts=("$1")
   fi
@@ -202,7 +202,7 @@ function log_collection_and_analysis()
 function reboot_host()
 {
   local ssh_hosts
-  ssh_hosts=${SSH_HOSTS}
+  ssh_hosts=("${SSH_HOSTS[@]}")
   if [[ $1 != "all" && -n $1 ]]; then
     ssh_hosts=("$1")
   fi
