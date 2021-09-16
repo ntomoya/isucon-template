@@ -123,10 +123,7 @@ END
   done
 }
 
-# FIXME: nested link may cause problems (e.g. link /etc/nginx/ after linking /etc/nginx/nginx.conf)
-# TODO: verify linking directory or file directly under /
-# TODO: delete symbolic link and restore files
-function link_remote_file()
+function copy_remote_file()
 {
   if [[ $# -lt 2 ]]; then
     print_error "missing required parameters: usage: ${SCRIPT_NAME} link <host> <remote file path>"
@@ -135,6 +132,7 @@ function link_remote_file()
 
   local ssh_host=$1
   local remote_path=$2
+  local link_flag=$3
 
   # store remote files under <host>/ (e.g. /etc/nginx/nginx.conf will be stored to <host>/etc/nginx/nginx.conf)
   local local_path_relative=${ssh_host}/${remote_path}
@@ -144,6 +142,9 @@ function link_remote_file()
   local local_base_dir=${local_path}
   local_base_dir=${local_base_dir%/}
   local_base_dir=${local_base_dir%/*}
+  local remote_base_dir=${remote_path}
+  remote_base_dir=${remote_base_dir%/}
+  remote_base_dir=${remote_base_dir%/*}
 
   mkdir -p "${local_base_dir}"
 
@@ -155,9 +156,24 @@ function link_remote_file()
   # FIXME: detect failure
   rsync_directory "${ssh_host}"
 
-  # TODO: remove fetched file if failed
-  execute_command_ssh_with_prefix "${ssh_host}" \
-    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
+  if [[ ${link_flag} == 1 ]]; then
+    # TODO: remove fetched file if failed
+    execute_command_ssh_with_prefix "${ssh_host}" \
+      "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
+  else
+    echo ""
+    echo "Copying the file from remote host has been succeeded!"
+    echo "Please add the following line to the 'deploy.sh': "
+    echo "sudo cp -rf ~/${DIR_NAME}/${local_path_relative} ${remote_base_dir}"
+  fi
+}
+
+# FIXME: nested link may cause problems (e.g. link /etc/nginx/ after linking /etc/nginx/nginx.conf)
+# TODO: verify linking directory or file directly under /
+# TODO: delete symbolic link and restore files
+function link_remote_file()
+{
+  copy_remote_file "$@" 1
 }
 
 function deploy_all()
@@ -247,6 +263,10 @@ fi
 sub_command=$1; shift 1
 
 case "${sub_command}" in
+  cp)
+    copy_remote_file "$@"
+    ;;
+
   deploy)
     deploy_all "$@"
     ;;
