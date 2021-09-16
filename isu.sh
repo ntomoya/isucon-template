@@ -195,25 +195,25 @@ function deploy_all()
 
 function log_collection_and_analysis()
 {
-  local target_base_dir
-  target_base_dir=${BASE_DIR}/logs/$(date "+%Y%m%d-%H%M%S")
+  local target_dir=${BASE_DIR}/logs/
+  local date_prefix=$(date "+%H%M%S")
 
   for ssh_host in "${SSH_HOSTS[@]}"; do
-    local target_dir=${target_base_dir}/${ssh_host}
-
     mkdir -p "${target_dir}"
+
+    local prefix="${date_prefix}-${ssh_host}"
 
     # copy files from remote
     # TODO: remove if the file size is too small
     (
       execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log /tmp/access.log && sudo chmod 777 /tmp/access.log" && \
-      scp "${ssh_host}:/tmp/access.log" "${target_dir}/access.log" && \
-      alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/access.log" > "${target_dir}/alp.log"
+      scp "${ssh_host}:/tmp/access.log" "${target_dir}/${prefix}-access.log" && \
+      alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/${prefix}-access.log" > "${target_dir}/${prefix}-alp.log"
     ) &
     (
       execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log /tmp/mysql-slow.log && sudo chmod 777 /tmp/mysql-slow.log" && \
-      scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/mysql-slow.log" && \
-      pt-query-digest "${target_dir}/mysql-slow.log" > "${target_dir}/pt-query-digest.log"
+      scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/${prefix}-mysql-slow.log" && \
+      pt-query-digest "${target_dir}/${prefix}-mysql-slow.log" > "${target_dir}/${prefix}-pt-query-digest.log"
     ) &
   done
   wait
