@@ -60,6 +60,8 @@ function print_info()
     echo ""
     print_and_execute "${ssh_host}" "ls ~"
     echo ""
+    print_and_execute "${ssh_host}" "cat /etc/hosts"
+    echo ""
     print_and_execute "${ssh_host}" "cat /etc/os-release"
     echo ""
     print_and_execute "${ssh_host}" "sudo systemctl list-units -t service -l --no-pager"
