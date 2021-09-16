@@ -118,7 +118,9 @@ set -ex
 # sudo systemctl restart mysql
 # sudo systemctl restart isucondition.go
 
+# sudo chmod 777 /var/log/nginx
 # sudo chmod 777 /var/log/nginx/*
+# sudo chmod 777 /var/log/mysql
 # sudo chmod 777 /var/log/mysql/*
 
 END
