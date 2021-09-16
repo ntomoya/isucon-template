@@ -24,7 +24,12 @@ function execute_command_ssh()
   local ssh_host=$1; shift 1
   local cmd=$*
 
-  ssh "${ssh_host}" "${cmd}" |& sed  "s/^/[${ssh_host}] /"
+  ssh "${ssh_host}" "${cmd}"
+}
+
+function execute_command_ssh_with_prefix()
+{
+  execute_command_ssh "$@" |& sed  "s/^/[${ssh_host}] /"
 }
 
 function print_and_execute()
@@ -150,8 +155,8 @@ function link_remote_file()
   rsync_directory "${ssh_host}"
 
   # TODO: remove fetched file if failed
-  execute_command_ssh "${ssh_host}" \
-    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${ssh_host}/${relative_local_path} ${remote_path%/}"
+  execute_command_ssh_with_prefix "${ssh_host}" \
+    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${ssh_host}/${local_path} ${remote_path%/}"
 }
 
 function deploy_all()
@@ -165,7 +170,7 @@ function deploy_all()
     "${BASE_DIR}/deploy.sh"
 
   for ssh_host in "${SSH_HOSTS[@]}"; do
-      execute_command_ssh "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
+        execute_command_ssh_with_prefix "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
   done
   wait
   )
@@ -203,7 +208,7 @@ function reboot_host()
   fi
 
   for ssh_host in "${ssh_hosts[@]}"; do
-    execute_command_ssh "${ssh_host}" "sudo reboot" &
+    execute_command_ssh_with_prefix "${ssh_host}" "sudo reboot" &
   done
   wait
 }
@@ -211,7 +216,7 @@ function reboot_host()
 function execute_all_ssh()
 {
   for ssh_host in "${SSH_HOSTS[@]}"; do
-    execute_command_ssh "${ssh_host}" "$@" &
+    execute_command_ssh_with_prefix "${ssh_host}" "$@" &
   done
   wait
 }
