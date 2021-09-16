@@ -1,5 +1,7 @@
 #!/bin/bash
 
+readonly LOG_SIZE_MIN=1000
+
 readonly SCRIPT_NAME=${0##*/}
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 readonly DIR_NAME=${BASE_DIR##*/}
@@ -30,6 +32,7 @@ function execute_command_ssh()
 function execute_command_ssh_with_prefix()
 {
   execute_command_ssh "$@" |& sed  "s/^/[${ssh_host}] /"
+  return "${PIPESTATUS[0]}"
 }
 
 function print_and_execute()
@@ -193,10 +196,22 @@ function deploy_all()
   )
 }
 
+function check_remote_file_size()
+{
+  local ssh_host=$1
+  local path=$2
+  local file_size
+
+  file_size=$(execute_command_ssh "${ssh_host}" "wc -c < '${path}'" || echo 0)
+  [[ ${file_size} -gt ${LOG_SIZE_MIN} ]]
+  return $?
+}
+
 function log_collection_and_analysis()
 {
   local target_dir=${BASE_DIR}/logs/
-  local date_prefix=$(date "+%H%M%S")
+  local date_prefix
+  date_prefix=$(date "+%H%M%S")
 
   for ssh_host in "${SSH_HOSTS[@]}"; do
     mkdir -p "${target_dir}"
@@ -206,14 +221,28 @@ function log_collection_and_analysis()
     # copy files from remote
     # TODO: remove if the file size is too small
     (
-      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log /tmp/access.log && sudo chmod 777 /tmp/access.log" && \
-      scp "${ssh_host}:/tmp/access.log" "${target_dir}/${prefix}-access.log" && \
-      alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/${prefix}-access.log" > "${target_dir}/${prefix}-alp.log"
+      local remote_path="/tmp/access.log"
+
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
+
+      if check_remote_file_size "${ssh_host}" "${remote_path}"; then
+        scp "${ssh_host}:/tmp/access.log" "${target_dir}/${prefix}-access.log" && \
+        alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/${prefix}-access.log" > "${target_dir}/${prefix}-alp.log"
+      else
+        echo "skipping ${remote_path} on '${ssh_host}'"
+      fi
     ) &
     (
-      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log /tmp/mysql-slow.log && sudo chmod 777 /tmp/mysql-slow.log" && \
-      scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/${prefix}-mysql-slow.log" && \
-      pt-query-digest "${target_dir}/${prefix}-mysql-slow.log" > "${target_dir}/${prefix}-pt-query-digest.log"
+      local remote_path="/tmp/mysql-slow.log"
+
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
+
+      if check_remote_file_size "${ssh_host}" "${remote_path}"; then
+        scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/${prefix}-mysql-slow.log" && \
+        pt-query-digest "${target_dir}/${prefix}-mysql-slow.log" > "${target_dir}/${prefix}-pt-query-digest.log"
+      else
+        echo "skipping ${remote_path} on '${ssh_host}'"
+      fi
     ) &
   done
   wait
