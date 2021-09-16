@@ -122,32 +122,30 @@ END
 }
 
 # FIXME: nested link may cause problems (e.g. link /etc/nginx/ after linking /etc/nginx/nginx.conf)
+# TODO: verify linking directory or file directly under /
 # TODO: delete symbolic link and restore files
 function link_remote_file()
 {
   if [[ $# -lt 2 ]]; then
-    print_error "missing required parameters: usage: ${SCRIPT_NAME} link <host> <remote file path> [local file path]"
+    print_error "missing required parameters: usage: ${SCRIPT_NAME} link <host> <remote file path>"
     exit 1
   fi
 
   local ssh_host=$1
   local remote_path=$2
-  local local_path=$3
 
-  if [[ -z ${local_path} ]]; then
-    # if path is started with '/etc/', remove it.
-    # e.g. /etc/nginx/nginx.conf -> nginx/nginx.conf
-    # otherwise, just pick base path
-    # e.g. /home/isucon/env.sh -> env.sh
-    local relative_local_path=${remote_path#/etc/}
-    if [[ ${relative_local_path} == "${remote_path}" ]]; then
-      relative_local_path=${remote_path##*/}
-    fi
+  # store remote files under <host>/ (e.g. /etc/nginx/nginx.conf will be stored to <host>/etc/nginx/nginx.conf)
+  local local_path_relative=${ssh_host}/${remote_path}
+  local local_path=${BASE_DIR}/${local_path_relative}
 
-    local_path=${BASE_DIR}/${ssh_host}/${relative_local_path}
-  fi
+  # remove suffix / and assign base path (e.g. isu1/etc/nginx/ -> isu1/etc/)
+  local local_base_dir=${local_path}
+  local_base_dir=${local_base_dir%/}
+  local_base_dir=${local_base_dir%/*}
 
-  if ! scp -r "${ssh_host}:${remote_path}" "${local_path}"; then
+  mkdir -p "${local_base_dir}"
+
+  if ! scp -r "${ssh_host}:${remote_path}" "${local_base_dir}"; then
     print_error "faild to copy a file from the remote host"
     exit $?
   fi
@@ -157,7 +155,7 @@ function link_remote_file()
 
   # TODO: remove fetched file if failed
   execute_command_ssh_with_prefix "${ssh_host}" \
-    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${ssh_host}/${local_path} ${remote_path%/}"
+    "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
 }
 
 function deploy_all()
