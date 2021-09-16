@@ -175,10 +175,10 @@ function deploy_all()
 
     "${BASE_DIR}/deploy.sh"
 
-  for ssh_host in "${SSH_HOSTS[@]}"; do
+    for ssh_host in "${SSH_HOSTS[@]}"; do
         execute_command_ssh_with_prefix "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
-  done
-  wait
+    done
+    wait
   )
 }
 
@@ -194,13 +194,14 @@ function log_collection_and_analysis()
 
     # copy files from remote
     # TODO: remove if the file size is too small
-    scp "${ssh_host}:/var/log/nginx/access.log ${target_dir}/access.log" &
-    scp "${ssh_host}:/var/log/mysql/slow-query.log ${target_dir}/slow-query.log" &
-  done
-  wait
-
-  for ssh_host in "${SSH_HOST[@]}"; do
-    : #TODO
+    (
+      scp "${ssh_host}:/var/log/nginx/access.log" "${target_dir}/access.log" && \
+      alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/access.log" > "${target_dir}/alp.log"
+    ) &
+    (
+      scp "${ssh_host}:/var/log/mysql/mysql-slow.log" "${target_dir}/mysql-slow.log" && \
+      pt-query-digest "${target_dir}/mysql-slow.log" > "${target_dir}/pt-query-digest.log"
+    ) &
   done
   wait
 }
