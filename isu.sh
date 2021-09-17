@@ -187,7 +187,10 @@ function deploy_all()
   (
     cd "${BASE_DIR}" || exit 1
 
-    "${BASE_DIR}/deploy.sh"
+    if ! "${BASE_DIR}/deploy.sh"; then
+      print_error "executing 'deploy.sh' exited with error"
+      exit 1
+    fi
 
     for ssh_host in "${SSH_HOSTS[@]}"; do
         execute_command_ssh_with_prefix "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &

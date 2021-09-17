@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # Common deploy script
 
 # (cd ./webapp/go/ && go build -o isucondition)
