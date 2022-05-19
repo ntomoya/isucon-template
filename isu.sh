@@ -159,16 +159,16 @@ function copy_remote_file()
   # FIXME: detect failure
   rsync_directory "${ssh_host}"
 
-  if [[ ${link_flag} == 1 ]]; then
-    # TODO: remove fetched file if failed
-    execute_command_ssh_with_prefix "${ssh_host}" \
-      "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
-  else
-    echo ""
-    echo "Copying the file from remote host has been succeeded!"
-    echo "Please add the following line to the 'deploy.sh': "
-    echo "sudo cp -rf ~/${DIR_NAME}/${local_path_relative} ${remote_base_dir}"
-  fi
+  # if [[ ${link_flag} == 1 ]]; then
+  #   # TODO: remove fetched file if failed
+  #   execute_command_ssh_with_prefix "${ssh_host}" \
+  #     "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
+  # else
+  #   echo ""
+  #   echo "Copying the file from remote host has been succeeded!"
+  #   echo "Please add the following line to the 'deploy.sh': "
+  #   echo "sudo cp -rf ~/${DIR_NAME}/${local_path_relative} ${remote_base_dir}"
+  # fi
 }
 
 # FIXME: nested link may cause problems (e.g. link /etc/nginx/ after linking /etc/nginx/nginx.conf)
