@@ -31,7 +31,7 @@ function execute_command_ssh()
 
 function execute_command_ssh_with_prefix()
 {
-  execute_command_ssh "$@" |& sed  "s/^/[${ssh_host}] /"
+  execute_command_ssh "$@" 2>&1 | sed  "s/^/[${ssh_host}] /"
   return "${PIPESTATUS[0]}"
 }
 
