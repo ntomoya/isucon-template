@@ -113,6 +113,8 @@ set -ex
 # individual deploy script for ${ssh_host}
 # this script will be executed on remote host
 
+# sudo cp -rf ~/${DIR_NAME}/isu1/etc/nginx/nginx.conf /etc/nginx
+
 # sudo systemctl restart nginx
 # sudo systemctl restart redis
 # sudo systemctl restart mysql
