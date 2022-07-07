@@ -83,7 +83,7 @@ function rsync_directory()
   fi
 
   for ssh_host in "${ssh_hosts[@]}"; do
-    rsync -avzh --exclude 'logs' --exclude '.git' -e ssh "${BASE_DIR}" "${ssh_host}:~/" &
+    rsync -avzhc --exclude='.git' --filter="dir-merge,- .gitignore" -e ssh "${BASE_DIR}" "${ssh_host}:~/" &
   done
   wait
 }
