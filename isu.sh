@@ -1,10 +1,10 @@
 #!/bin/bash
 
 readonly LOG_SIZE_MIN=1000
+readonly RSYNC_DEST="~/i"
 
 readonly SCRIPT_NAME=${0##*/}
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-readonly DIR_NAME=${BASE_DIR##*/}
 
 function print_help()
 {
@@ -83,7 +83,11 @@ function rsync_directory()
   fi
 
   for ssh_host in "${ssh_hosts[@]}"; do
-    rsync -avzhc --exclude='.git' --filter="dir-merge,- .gitignore" -e ssh "${BASE_DIR}" "${ssh_host}:~/" &
+    (
+      execute_command_ssh "${ssh_host}" "mkdir -p ${RSYNC_DEST}"
+      #rsync -avzhc --exclude='.git' --filter="dir-merge,- .gitignore" -e ssh "${BASE_DIR}/" "${ssh_host}:${RSYNC_DEST}"
+      rsync -avzhc --exclude='.git' --exclude='logs' -e ssh "${BASE_DIR}/" "${ssh_host}:${RSYNC_DEST}"
+    ) &
   done
   wait
 }
@@ -113,7 +117,7 @@ set -ex
 # individual deploy script for ${ssh_host}
 # this script will be executed on remote host
 
-# sudo cp -rf ~/${DIR_NAME}/isu1/etc/nginx/nginx.conf /etc/nginx
+# sudo cp -rf ${RSYNC_DEST}/isu1/etc/nginx/nginx.conf /etc/nginx
 
 # sudo systemctl restart nginx
 # sudo systemctl restart redis
@@ -164,12 +168,12 @@ function copy_remote_file()
   if [[ ${link_flag} == 1 ]]; then
     # TODO: remove fetched file if failed
     execute_command_ssh_with_prefix "${ssh_host}" \
-      "sudo rm -rf ${remote_path} && sudo ln -sf ~/${DIR_NAME}/${local_path_relative} ${remote_path%/}"
+      "sudo rm -rf ${remote_path} && sudo ln -sf ${RSYNC_DEST}/${local_path_relative} ${remote_path%/}"
   else
     echo ""
     echo "Copying the file from remote host has been succeeded!"
     echo "Please add the following line to the 'deploy.sh': "
-    echo "sudo cp -rf ~/${DIR_NAME}/${local_path_relative} ${remote_base_dir}"
+    echo "sudo cp -rf ${RSYNC_DEST}/${local_path_relative} ${remote_base_dir}"
   fi
 }
 
@@ -195,7 +199,7 @@ function deploy_all()
     fi
 
     for ssh_host in "${SSH_HOSTS[@]}"; do
-        execute_command_ssh_with_prefix "${ssh_host}" "~/${DIR_NAME}/${ssh_host}/deploy.sh" &
+        execute_command_ssh_with_prefix "${ssh_host}" "${RSYNC_DEST}/${ssh_host}/deploy.sh" &
     done
     wait
   )
