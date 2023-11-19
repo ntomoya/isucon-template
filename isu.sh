@@ -231,17 +231,8 @@ function log_collection_and_analysis()
       # log analysis on remote
       local access_log_path="/var/log/nginx/access.log"
       execute_command_ssh_with_prefix "${ssh_host}" \
-        "sudo chmod 777 ${access_log_path} && alp ltsv -c ~/${DIR_NAME}/alp.yml --file=${access_log_path} > /tmp/${prefix}-alp.log"
+        "sudo chmod 777 ${access_log_path} && alp json -c ${RSYNC_DEST}/alp.yml --file=${access_log_path} > /tmp/${prefix}-alp.log"
       scp "${ssh_host}:/tmp/${prefix}-alp.log" "${target_dir}"
-
-      # log analysis on local
-      #execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
-      #if check_remote_file_size "${ssh_host}" "${remote_path}"; then
-      #  scp "${ssh_host}:/tmp/access.log" "${target_dir}/${prefix}-access.log" && \
-      #  alp ltsv -c "${BASE_DIR}/alp.yml" --file="${target_dir}/${prefix}-access.log" > "${target_dir}/${prefix}-alp.log"
-      #else
-      #  echo "skipping ${remote_path} on '${ssh_host}'"
-      #fi
     ) &
     (
       # log analysis on remote
@@ -249,16 +240,46 @@ function log_collection_and_analysis()
       execute_command_ssh_with_prefix "${ssh_host}" \
         "sudo cp /var/log/mysql/mysql-slow.log ${slow_log_path} && sudo chmod 777 ${slow_log_path} && pt-query-digest ${slow_log_path} > /tmp/${prefix}-pt-query-digest.log"
       scp "${ssh_host}:/tmp/${prefix}-pt-query-digest.log" "${target_dir}"
+    ) &
+  done
+  wait
+}
+
+function log_collection_and_analysis_local()
+{
+  local target_dir=${BASE_DIR}/logs/
+  local date_prefix
+  date_prefix=$(date "+%H%M%S")
+
+  for ssh_host in "${SSH_HOSTS[@]}"; do
+    mkdir -p "${target_dir}"
+
+    local prefix="${date_prefix}-${ssh_host}"
+
+    # copy files from remote
+    # TODO: remove if the file size is too small
+    (
+      local remote_path="/tmp/access.log"
 
       # log analysis on local
-      #local remote_path="/tmp/mysql-slow.log"
-      #execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
-      #if check_remote_file_size "${ssh_host}" "${remote_path}"; then
-      #  scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/${prefix}-mysql-slow.log" && \
-      #  pt-query-digest "${target_dir}/${prefix}-mysql-slow.log" > "${target_dir}/${prefix}-pt-query-digest.log"
-      #else
-      #  echo "skipping ${remote_path} on '${ssh_host}'"
-      #fi
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/nginx/access.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
+      if check_remote_file_size "${ssh_host}" "${remote_path}"; then
+       scp "${ssh_host}:/tmp/access.log" "${target_dir}/${prefix}-access.log" && \
+       alp json -c "${BASE_DIR}/alp.yml" --file="${target_dir}/${prefix}-access.log" > "${target_dir}/${prefix}-alp.log"
+      else
+       echo "skipping ${remote_path} on '${ssh_host}'"
+      fi
+    ) &
+    (
+      # log analysis on local
+      local remote_path="/tmp/mysql-slow.log"
+      execute_command_ssh_with_prefix "${ssh_host}" "sudo cp /var/log/mysql/mysql-slow.log ${remote_path} && sudo chmod 777 ${remote_path}" && \
+      if check_remote_file_size "${ssh_host}" "${remote_path}"; then
+       scp "${ssh_host}:/tmp/mysql-slow.log" "${target_dir}/${prefix}-mysql-slow.log" && \
+       pt-query-digest "${target_dir}/${prefix}-mysql-slow.log" > "${target_dir}/${prefix}-pt-query-digest.log"
+      else
+       echo "skipping ${remote_path} on '${ssh_host}'"
+      fi
     ) &
   done
   wait
@@ -338,6 +359,10 @@ case "${sub_command}" in
   
   log)
     log_collection_and_analysis "$@"
+    ;;
+  
+  llog)
+    log_collection_and_analysis_local "$@"
     ;;
   
   push)
