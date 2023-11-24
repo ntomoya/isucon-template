@@ -116,6 +116,12 @@ set -ex
 # individual deploy script for ${ssh_host}
 # this script will be executed on remote host
 
+# sudo systemctl stop isucondition.go
+# (cd ~/i/webapp/go && /usr/local/go_/bin/go mod tidy && /usr/local/go_/bin/go build -o isucondition && cp isucondition ~/webapp/go)
+# cp ~/i/webapp/sql/0_Schema.sql ~/webapp/sql
+# cp ~/i/webapp/sql/init.sh ~/webapp/sql
+# sudo systemctl start isucondition.go
+
 # sudo cp -rf ${RSYNC_DEST}/isu1/etc/nginx/nginx.conf /etc/nginx
 
 # sudo systemctl restart nginx
