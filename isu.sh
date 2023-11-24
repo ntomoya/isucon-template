@@ -85,8 +85,7 @@ function rsync_directory()
   for ssh_host in "${ssh_hosts[@]}"; do
     (
       execute_command_ssh "${ssh_host}" "mkdir -p ${RSYNC_DEST}"
-      #rsync -avzhc --exclude='.git' --filter="dir-merge,- .gitignore" -e ssh "${BASE_DIR}/" "${ssh_host}:${RSYNC_DEST}"
-      rsync -avzhc --exclude='.git' --exclude='logs' -e ssh "${BASE_DIR}/" "${ssh_host}:${RSYNC_DEST}"
+      rsync -avzhc --exclude='.git' --filter="dir-merge,- .gitignore" -e ssh "${BASE_DIR}/" "${ssh_host}:${RSYNC_DEST}"
     ) &
   done
   wait
